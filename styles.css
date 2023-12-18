@@ -1,0 +1,15 @@
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+#circle {
+  width: 100px;
+  height: 100px;
+  background-color: green;
+  border-radius: 50%;
+  cursor: pointer;
+}
