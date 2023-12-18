@@ -7,10 +7,21 @@ body {
   background-color: #f0f0f0; /* Grey background color */
 }
 
+#game-container {
+  position: relative;
+}
+
 #circle {
   width: 100px;
   height: 100px;
   background-color: green;
   border-radius: 50%;
   cursor: pointer;
+}
+
+#money-container {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 18px;
 }
