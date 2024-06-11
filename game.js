@@ -31,10 +31,10 @@ for (let i = 0; i < 5; i++) {
 }
 
 // Add lighting to the scene
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.2); // Reduced intensity
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8); // Reduced intensity
 directionalLight.position.set(10, 10, 10);
 directionalLight.castShadow = true;
 directionalLight.shadow.camera.top = 10;
