@@ -18,6 +18,14 @@ scene.add(player);
 
 let bullets = [];
 
+// Add lighting to make the player cube visible
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+directionalLight.position.set(1, 1, 1).normalize();
+scene.add(directionalLight);
+
 // Add event listeners for movement and shooting
 const keys = {};
 document.addEventListener('keydown', (e) => keys[e.key] = true);
