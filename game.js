@@ -1,69 +1,55 @@
 // Create the scene
 const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xa0a0a0);
 
 // Create a camera, which determines what we'll see when we render the scene
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.z = 5;
+camera.position.set(0, 10, 20);
 
 // Create a renderer and add it to the DOM
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// Add a basic player cube
-const playerGeometry = new THREE.BoxGeometry();
-const playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-const player = new THREE.Mesh(playerGeometry, playerMaterial);
-scene.add(player);
+// Create a ground plane
+const groundGeometry = new THREE.PlaneGeometry(50, 50);
+const groundMaterial = new THREE.MeshPhongMaterial({ color: 0x999999, depthWrite: false });
+const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
 
-let bullets = [];
+// Create basic obstacles
+const obstacleGeometry = new THREE.BoxGeometry(2, 2, 2);
+const obstacleMaterial = new THREE.MeshPhongMaterial({ color: 0x888888 });
 
-// Add lighting to make the player cube visible
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+for (let i = 0; i < 5; i++) {
+    const obstacle = new THREE.Mesh(obstacleGeometry, obstacleMaterial);
+    obstacle.position.set(Math.random() * 40 - 20, 1, Math.random() * 40 - 20);
+    obstacle.castShadow = true;
+    scene.add(obstacle);
+}
+
+// Add lighting to the scene
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
 scene.add(ambientLight);
 
 const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-directionalLight.position.set(1, 1, 1).normalize();
+directionalLight.position.set(10, 10, 10);
+directionalLight.castShadow = true;
+directionalLight.shadow.camera.top = 10;
+directionalLight.shadow.camera.bottom = -10;
+directionalLight.shadow.camera.left = -10;
+directionalLight.shadow.camera.right = 10;
 scene.add(directionalLight);
 
-// Add event listeners for movement and shooting
-const keys = {};
-document.addEventListener('keydown', (e) => keys[e.key] = true);
-document.addEventListener('keyup', (e) => keys[e.key] = false);
-document.addEventListener('click', shoot);
-
-function shoot(event) {
-    const bulletGeometry = new THREE.SphereGeometry(0.1, 8, 8);
-    const bulletMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-    const bullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
-    bullet.position.set(player.position.x, player.position.y, player.position.z);
-    
-    const direction = new THREE.Vector3();
-    camera.getWorldDirection(direction);
-    bullets.push({ mesh: bullet, direction: direction.clone() });
-    scene.add(bullet);
-}
-
-function update() {
-    if (keys['w']) player.position.z -= 0.1;
-    if (keys['s']) player.position.z += 0.1;
-    if (keys['a']) player.position.x -= 0.1;
-    if (keys['d']) player.position.x += 0.1;
-    
-    bullets.forEach((bullet, index) => {
-        bullet.mesh.position.add(bullet.direction.clone().multiplyScalar(0.2));
-        if (bullet.mesh.position.length() > 50) {
-            scene.remove(bullet.mesh);
-            bullets.splice(index, 1);
-        }
-    });
-}
+// Add controls for the camera (orbit controls)
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0, 0);
+controls.update();
 
 function animate() {
     requestAnimationFrame(animate);
-    
-    update();
-    
     renderer.render(scene, camera);
 }
 
