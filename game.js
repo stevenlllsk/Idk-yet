@@ -1,71 +1,62 @@
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+// Create the scene
+const scene = new THREE.Scene();
 
-const player = {
-    x: canvas.width / 2,
-    y: canvas.height / 2,
-    width: 40,
-    height: 40,
-    speed: 5,
-    color: '#e74c3c'
-};
+// Create a camera, which determines what we'll see when we render the scene
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.z = 5;
 
-const bullets = [];
+// Create a renderer and add it to the DOM
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Add a basic player cube
+const playerGeometry = new THREE.BoxGeometry();
+const playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+const player = new THREE.Mesh(playerGeometry, playerMaterial);
+scene.add(player);
+
+let bullets = [];
+
+// Add event listeners for movement and shooting
 const keys = {};
+document.addEventListener('keydown', (e) => keys[e.key] = true);
+document.addEventListener('keyup', (e) => keys[e.key] = false);
+document.addEventListener('click', shoot);
 
-document.addEventListener('keydown', (e) => {
-    keys[e.key] = true;
-});
-
-document.addEventListener('keyup', (e) => {
-    keys[e.key] = false;
-});
-
-document.addEventListener('click', (e) => {
-    const angle = Math.atan2(e.clientY - player.y, e.clientX - player.x);
-    bullets.push({
-        x: player.x,
-        y: player.y,
-        width: 5,
-        height: 5,
-        speed: 7,
-        angle: angle,
-        color: '#f1c40f'
-    });
-});
+function shoot(event) {
+    const bulletGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+    const bulletMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    const bullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
+    bullet.position.set(player.position.x, player.position.y, player.position.z);
+    
+    const direction = new THREE.Vector3();
+    camera.getWorldDirection(direction);
+    bullets.push({ mesh: bullet, direction: direction.clone() });
+    scene.add(bullet);
+}
 
 function update() {
-    if (keys['w'] && player.y > 0) player.y -= player.speed;
-    if (keys['s'] && player.y < canvas.height - player.height) player.y += player.speed;
-    if (keys['a'] && player.x > 0) player.x -= player.speed;
-    if (keys['d'] && player.x < canvas.width - player.width) player.x += player.speed;
-
+    if (keys['w']) player.position.z -= 0.1;
+    if (keys['s']) player.position.z += 0.1;
+    if (keys['a']) player.position.x -= 0.1;
+    if (keys['d']) player.position.x += 0.1;
+    
     bullets.forEach((bullet, index) => {
-        bullet.x += bullet.speed * Math.cos(bullet.angle);
-        bullet.y += bullet.speed * Math.sin(bullet.angle);
-
-        if (bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) {
+        bullet.mesh.position.add(bullet.direction.clone().multiplyScalar(0.2));
+        if (bullet.mesh.position.length() > 50) {
+            scene.remove(bullet.mesh);
             bullets.splice(index, 1);
         }
     });
 }
 
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = player.color;
-    ctx.fillRect(player.x, player.y, player.width, player.height);
-
-    bullets.forEach(bullet => {
-        ctx.fillStyle = bullet.color;
-        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-    });
-}
-
-function gameLoop() {
+function animate() {
+    requestAnimationFrame(animate);
+    
     update();
-    draw();
-    requestAnimationFrame(gameLoop);
+    
+    renderer.render(scene, camera);
 }
 
-gameLoop();
+animate();
